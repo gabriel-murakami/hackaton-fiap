@@ -1,0 +1,8 @@
+# Ignorar arquivos de credenciais locais
+.env
+*/config/master.key
+
+# Ignorar pastas de banco de dados locais e caches do Docker
+*/tmp/
+*/log/
+.storage/

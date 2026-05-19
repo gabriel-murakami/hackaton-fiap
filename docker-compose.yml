@@ -1,0 +1,160 @@
+version: '3.8'
+
+services:
+  # --- BANCO DE DADOS: UPLOAD SERVICE ---
+  db-upload:
+    image: postgres:15-alpine
+    container_name: db_upload_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: upload_service_development
+    volumes:
+      - postgres_data_upload:/var/lib/postgresql/data
+    ports:
+      - "5431:5432"
+    networks:
+      - microservices_network
+
+  # --- BANCO DE DADOS: REPORT SERVICE ---
+  db-report:
+    image: postgres:15-alpine
+    container_name: db_report_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: report_service_development
+    volumes:
+      - postgres_data_report:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - microservices_network
+
+  # --- MESSAGE BROKER: RABBITMQ ---
+# --- MESSAGE BROKER: RABBITMQ ---
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq_broker
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - microservices_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # --- OBJECT STORAGE: MINIO ---
+  minio:
+    image: minio/minio:latest
+    container_name: minio_storage
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - microservices_network
+
+  # --- MICROSSERVIÇO: UPLOAD SERVICE ---
+  upload_service:
+    build:
+      context: ./upload_service
+      dockerfile: Dockerfile
+    container_name: rails_upload_service
+    command: bundle exec rails server -b 0.0.0.0 -p 3000
+    volumes:
+      - ./upload_service:/rails
+    ports:
+      - "3001:3000"
+    environment:
+      - RAILS_ENV=development
+      - DATABASE_URL=postgres://postgres:password123@db-upload:5432/upload_service_development
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - RAILS_LOG_TO_STDOUT=true
+    depends_on:
+      db-upload:
+        condition: service_started
+      minio:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservices_network
+
+  # --- MICROSSERVIÇO: REPORT SERVICE ---
+  report_service:
+    build:
+      context: ./report_service
+      dockerfile: Dockerfile
+    container_name: rails_report_service
+    command: bundle exec rails server -b 0.0.0.0 -p 3000
+    volumes:
+      - ./report_service:/rails
+    ports:
+      - "3002:3000"
+    environment:
+      - RAILS_ENV=development
+      - DATABASE_URL=postgres://postgres:password123@db-report:5432/report_service_development
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - RAILS_LOG_TO_STDOUT=true
+    depends_on:
+      db-report:
+        condition: service_started
+      minio:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservices_network
+
+  # --- WORKER: REPORT SERVICE SNEAKERS ---
+  report_worker:
+    build:
+      context: ./report_service
+      dockerfile: Dockerfile
+    container_name: rails_report_worker
+    command: bundle exec rake sneakers:run
+    volumes:
+      - ./report_service:/rails
+    environment:
+      - RAILS_ENV=development
+      - DATABASE_URL=postgres://postgres:password123@db-report:5432/report_service_development
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - WORKERS=ReportWorker
+      - RAILS_LOG_TO_STDOUT=true
+    depends_on:
+      db-report:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservices_network
+
+volumes:
+  postgres_data_upload:
+  postgres_data_report:
+  rabbitmq_data:
+  minio_data:
+
+networks:
+  microservices_network:
+    driver: bridge
