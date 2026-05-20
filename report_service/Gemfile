@@ -7,7 +7,8 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "bootsnap", require: false
 gem "aws-sdk-s3"
 gem "sneakers"
-gem "google-genai", require: false
+gem "openai"
+gem "pdf-reader"
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

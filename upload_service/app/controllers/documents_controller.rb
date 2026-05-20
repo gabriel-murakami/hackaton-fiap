@@ -19,9 +19,25 @@ class DocumentsController < ApplicationController
     end
   end
 
+  def show
+    document = Document.find_by(id: permitted_params[:document_id])
+
+    file_url = document.file.url(expires_in: 15.minutes)
+
+    render json: {
+      document_id: document.id,
+      file_url: file_url,
+      filename: document.file.filename.to_s
+    }
+  end
+
   private
 
+  def permitted_params
+    params.permit(:title, :file, :document_id)
+  end
+
   def document_params
-    params.permit(:title, :file)
+    permitted_params.except(:document_id)
   end
 end

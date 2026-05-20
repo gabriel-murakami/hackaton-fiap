@@ -12,35 +12,44 @@ class ReportWorker
     Rails.logger.tagged("ReportWorker", "Doc-ID: #{data['document_id']}") do
       Rails.logger.info "Iniciando processamento do arquivo: #{data['filename']}"
 
+      new_report = Report.new(
+        document_id: data["document_id"],
+        document_name: data["filename"],
+        status: :pending
+      )
+
       begin
         file_content = URI.open(file_url).read
         Rails.logger.info "Arquivo baixado com sucesso via URL do MinIO."
 
-        prompt = "Atue como um analista especialista. Analise o arquivo anexo e extraia os principais pontos textuais estruturados em formato de topicos normatizados."
-
-        # ai_result = ReportAnalyzerService.analyze_file(file_content, data["filename"], prompt)
-        ai_result = "TESTE DO FLUXO"
+        ai_result = ReportAnalyzer::Orchestrator.call(
+          file: file_content, filename: data["filename"], report: new_report
+        )
 
         if ai_result
-          Rails.logger.info "--- RESPOSTA DO GEMINI RECEBIDA COM SUCESSO ---"
-          Rails.logger.info "\n#{ai_result}"
-          Rails.logger.info "----------------------------------------------"
+          Rails.logger.info "Análise concluída com sucesso"
 
-          Report.create!(
-            document_id: data["document_id"],
+          new_report.update(
+            status: :completed,
             result: ai_result
           )
         else
-          Rails.logger.error "Nao foi possivel obter o retorno do Gemini."
+          Rails.logger.error "Nao foi possivel obter o retorno"
         end
 
         ack!
       rescue OpenURI::HTTPError => e
         Rails.logger.error "Falha ao baixar o arquivo da URL. Erro HTTP: #{e.message}"
+
+        new_report.failed!
+
         reject!
       rescue StandardError => e
         Rails.logger.fatal "Erro inesperado no processamento do worker: #{e.class} - #{e.message}"
         Rails.logger.fatal e.backtrace.join("\n")
+
+        new_report.failed!
+
         reject!
       end
     end

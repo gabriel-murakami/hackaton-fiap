@@ -16,7 +16,9 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_19_211506) do
   enable_extension "plpgsql"
 
   create_table "reports", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.text "result"
+    t.jsonb "result"
+    t.string "status"
+    t.string "document_name"
     t.uuid "document_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

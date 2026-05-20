@@ -77,6 +77,7 @@ services:
     command: bundle exec rails server -b 0.0.0.0 -p 3000
     volumes:
       - ./upload_service:/rails
+      - bundle_upload:/usr/local/bundle
     ports:
       - "3001:3000"
     environment:
@@ -106,8 +107,11 @@ services:
     command: bundle exec rails server -b 0.0.0.0 -p 3000
     volumes:
       - ./report_service:/rails
+      - bundle_report:/usr/local/bundle
     ports:
       - "3002:3000"
+    env_file:
+      - .env
     environment:
       - RAILS_ENV=development
       - DATABASE_URL=postgres://postgres:password123@db-report:5432/report_service_development
@@ -135,6 +139,9 @@ services:
     command: bundle exec rake sneakers:run
     volumes:
       - ./report_service:/rails
+      - bundle_report:/usr/local/bundle
+    env_file:
+      - .env
     environment:
       - RAILS_ENV=development
       - DATABASE_URL=postgres://postgres:password123@db-report:5432/report_service_development
@@ -154,6 +161,8 @@ volumes:
   postgres_data_report:
   rabbitmq_data:
   minio_data:
+  bundle_upload:
+  bundle_report:
 
 networks:
   microservices_network:
