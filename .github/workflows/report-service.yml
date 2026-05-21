@@ -1,0 +1,17 @@
+name: report_service CI
+
+on:
+  pull_request:
+    paths:
+      - "report_service/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "report_service/**"
+
+jobs:
+  ci:
+    uses: ./.github/workflows/_ruby-ci.yml
+    with:
+      service: report_service
