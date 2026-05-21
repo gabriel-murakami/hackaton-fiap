@@ -1,0 +1,30 @@
+# Hackaton FIAP - Sistema de Microsserviços
+
+Este repositório contém a solução desenvolvida para o Hackaton FIAP. A arquitetura é baseada em microsserviços em Ruby on Rails, utilizando mensageria para comunicação assíncrona e armazenamento de objetos.
+
+## Arquitetura do Projeto
+
+O ecossistema é composto por dois serviços independentes, além de uma infraestrutura compartilhada via Docker Compose:
+
+*   **Upload Service (/upload_service):** Responsável por receber os arquivos enviados, gerenciar o armazenamento no MinIO e notificar o processamento via RabbitMQ.
+*   **Report Service (/report_service):** Responsável por consumir as mensagens do Broker, processar os dados e gerar os relatórios correspondentes. Possui um Worker dedicado (report_worker) rodando de forma assíncrona com a gem Sneakers.
+
+---
+
+## Documentação dos Serviços
+
+Cada microsserviço possui suas próprias particularidades, variáveis de ambiente, configurações de banco de dados e rotas. Para entender o funcionamento, setup local e testes de cada um deles, acesse os respectivos guias:
+
+*   [Documentação do Upload Service](./upload_service/README.md)
+*   [Documentação do Report Service](./report_service/README.md)
+
+---
+
+## Infraestrutura Global (Docker Compose)
+
+A raiz do projeto gerencia toda a orquestração dos containers de desenvolvimento por meio do arquivo docker-compose.yml.
+
+### Componentes Globais da Rede:
+*   **Banco de Dados (PostgreSQL):** Dois bancos isolados rodando em portas distintas para garantir a autonomia dos dados de cada serviço (db-upload na porta 5431 e db-report na porta 5432).
+*   **Message Broker (RabbitMQ):** Responsável pela fila de comunicação entre os serviços. Inclui o painel de gerenciamento na porta 15672.
+*   **Object Storage (MinIO):** API compatível com S3 para armazenamento de arquivos e relatórios. Painel console disponível na porta 9001.

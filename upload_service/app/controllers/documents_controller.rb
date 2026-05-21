@@ -20,7 +20,7 @@ class DocumentsController < ApplicationController
   end
 
   def show
-    document = Document.find_by(id: permitted_params[:document_id])
+    document = Document.find_by!(id: permitted_params[:document_id])
 
     file_url = document.file.url(expires_in: 15.minutes)
 

@@ -6,3 +6,5 @@
 */tmp/
 */log/
 .storage/
+report_service/coverage/
+upload_service/coverage/
