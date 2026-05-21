@@ -13,4 +13,3 @@ development:
 test:
   <<: *default
   database: upload_service_test
-  host: db-upload

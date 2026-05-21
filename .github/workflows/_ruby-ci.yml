@@ -1,0 +1,117 @@
+name: Ruby CI (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        description: "Diretório do serviço (ex: report_service)"
+        required: true
+        type: string
+
+jobs:
+  scan_ruby:
+    name: Brakeman
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.service }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          working-directory: ${{ inputs.service }}
+          bundler-cache: true
+
+      - name: Scan for security vulnerabilities (Brakeman)
+        run: bin/brakeman --no-pager
+
+  lint:
+    name: RuboCop
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.service }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          working-directory: ${{ inputs.service }}
+          bundler-cache: true
+
+      - name: Lint code (RuboCop)
+        run: bin/rubocop -f github
+
+  test:
+    name: RSpec
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.service }}
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+      rabbitmq:
+        image: rabbitmq:3
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd="rabbitmq-diagnostics -q ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          working-directory: ${{ inputs.service }}
+          bundler-cache: true
+
+      - name: Setup database
+        env:
+          RAILS_ENV: test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST: localhost
+          RABBITMQ_URL: amqp://guest:guest@localhost:5672
+        run: bin/rails db:test:prepare
+
+      - name: Run tests
+        env:
+          RAILS_ENV: test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST: localhost
+          RABBITMQ_URL: amqp://guest:guest@localhost:5672
+        run: bundle exec rspec
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-${{ inputs.service }}
+          path: ${{ inputs.service }}/coverage/
+          if-no-files-found: ignore

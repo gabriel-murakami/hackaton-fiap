@@ -38,12 +38,14 @@ RSpec.describe ReportsController, type: :controller do
         expect(response).to have_http_status(:ok)
       end
 
-      it "returns the report data" do
+      it "returns a PDF content type" do
         get :show, params: { document_id: report.document_id }
-        body = JSON.parse(response.body)
-        expect(body["id"]).to eq(report.id)
-        expect(body["document_id"]).to eq(report.document_id.to_s)
-        expect(body["status"]).to eq("completed")
+        expect(response.content_type).to eq("application/pdf")
+      end
+
+      it "returns binary data starting with the PDF magic bytes" do
+        get :show, params: { document_id: report.document_id }
+        expect(response.body).to start_with("%PDF")
       end
     end
 
