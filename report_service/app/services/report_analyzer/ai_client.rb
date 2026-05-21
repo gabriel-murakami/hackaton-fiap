@@ -4,7 +4,7 @@ require "base64"
 
 module ReportAnalyzer
   class AiClient
-    API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent"
+    API_URL = ENV["GEMINI_API_URL"]
 
     def self.analyze(content:, prompt:)
       uri = URI("#{API_URL}?key=#{ENV['GEMINI_API_KEY']}")

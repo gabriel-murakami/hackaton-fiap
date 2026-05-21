@@ -20,7 +20,7 @@ class DocumentsController < ApplicationController
   end
 
   def show
-    document = Document.find_by(id: permitted_params[:document_id])
+    document = Document.find_by!(id: permitted_params[:document_id])
 
     file_url = document.file.url(expires_in: 15.minutes)
 
@@ -29,6 +29,12 @@ class DocumentsController < ApplicationController
       file_url: file_url,
       filename: document.file.filename.to_s
     }
+  end
+
+  def index
+    documents = Document.all
+
+    render json: documents.map { |doc| { document_id: doc.id, title: doc.title } }
   end
 
   private

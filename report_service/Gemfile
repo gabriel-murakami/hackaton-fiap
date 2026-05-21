@@ -9,6 +9,9 @@ gem "aws-sdk-s3"
 gem "sneakers"
 gem "openai"
 gem "pdf-reader"
+gem "matrix"
+gem "prawn"
+gem "prawn-table"
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

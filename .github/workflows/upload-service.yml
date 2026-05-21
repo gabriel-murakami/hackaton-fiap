@@ -1,0 +1,17 @@
+name: upload_service CI
+
+on:
+  pull_request:
+    paths:
+      - "upload_service/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "upload_service/**"
+
+jobs:
+  ci:
+    uses: ./.github/workflows/_ruby-ci.yml
+    with:
+      service: upload_service

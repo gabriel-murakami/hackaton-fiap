@@ -5,8 +5,11 @@ if [ -z "${LD_PRELOAD+x}" ] && [ -f /usr/lib/*/libjemalloc.so.2 ]; then
   export LD_PRELOAD="$(echo /usr/lib/*/libjemalloc.so.2)"
 fi
 
-# If running the rails server then create or migrate existing database
+# If running the rails server then clean pids and create or migrate existing database
 if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then
+  # Linha adicionada para evitar o erro de "server is already running":
+  rm -f tmp/pids/server.pid
+
   ./bin/rails db:prepare
 fi
 
