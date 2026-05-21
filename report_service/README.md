@@ -109,7 +109,7 @@ app/
 
 ## Executando com Docker
 
-```bash
+```shell
 docker build -t report-service .
 docker run -p 3000:3000 \
   -e RAILS_MASTER_KEY=<chave> \
@@ -121,7 +121,7 @@ docker run -p 3000:3000 \
 
 ## Desenvolvimento Local
 
-```bash
+```shell
 # Instalar dependências
 bundle install
 
@@ -137,7 +137,7 @@ WORKERS=ReportWorker bundle exec rake sneakers:run
 
 ## Testes
 
-```bash
+```shell
 bundle exec rspec
 ```
 
