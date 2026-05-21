@@ -17,7 +17,7 @@ module ReportAnalyzer
         "Content-Type" => "application/json"
       )
 
-      Rails.logger.info(response.body.inspect)
+      Rails.logger.info("Resposta recebida da API Gemini")
 
       parsed = JSON.parse(response.body)
 
