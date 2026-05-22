@@ -32,7 +32,7 @@ module ReportAnalyzer
           contents: [
             {
               parts: [
-                { text: "#{system_rules}\n\n#{prompt}\n\n#{content[:content]}" }
+                { text: "#{prompt}\n\n#{content[:content]}" }
               ]
             }
           ]
@@ -43,7 +43,7 @@ module ReportAnalyzer
           contents: [
             {
               parts: [
-                { text: "#{system_rules}\n\n#{prompt}" },
+                { text: "#{prompt}" },
                 {
                   inline_data: {
                     mime_type: "image/png",
@@ -58,14 +58,6 @@ module ReportAnalyzer
       else
         raise "Tipo inválido"
       end
-    end
-
-    def self.system_rules
-      <<~SYSTEM
-        Você é um especialista em arquitetura de software.
-        Não invente informações.
-        Responda apenas com JSON válido.
-      SYSTEM
     end
 
     def self.extract_text(response)

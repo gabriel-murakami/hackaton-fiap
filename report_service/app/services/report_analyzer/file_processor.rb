@@ -9,6 +9,7 @@ module ReportAnalyzer
       raise "Arquivo vazio" if file.blank?
 
       ext = File.extname(filename).downcase
+
       raise "Formato não suportado" unless SUPPORTED_TYPES.include?(ext)
     end
 

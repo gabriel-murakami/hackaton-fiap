@@ -34,7 +34,7 @@ class ReportWorker
             result: ai_result
           )
         else
-          Rails.logger.error "Nao foi possivel obter o retorno"
+          Rails.logger.error "Não foi possivel obter o retorno"
         end
 
         ack!
