@@ -70,6 +70,12 @@ services:
     build:
       context: ./upload_service
       dockerfile: Dockerfile
+      args:
+        UID: ${UID}
+        GID: ${GID}
+        RAILS_ENV: "development"
+        BUNDLE_WITHOUT: ""
+    user: "${UID}:${GID}"
     container_name: rails_upload_service
     command: ["./bin/rails", "server", "-b", "0.0.0.0"]
     volumes:
@@ -101,6 +107,12 @@ services:
     build:
       context: ./report_service
       dockerfile: Dockerfile
+      args:
+        UID: ${UID}
+        GID: ${GID}
+        RAILS_ENV: "development"
+        BUNDLE_WITHOUT: ""
+    user: "${UID}:${GID}"
     container_name: rails_report_service
     command: ["./bin/rails", "server", "-b", "0.0.0.0"]
     volumes:
@@ -134,6 +146,9 @@ services:
     build:
       context: ./report_service
       dockerfile: Dockerfile
+      args:
+        UID: 1001
+        GID: 1001
     container_name: rails_report_worker
     command: bundle exec rake sneakers:run
     volumes:

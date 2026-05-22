@@ -11,7 +11,5 @@ start:
 restart:
 	make stop && make start
 reset_db:
-	make stop
 	docker compose run --rm report_service bundle exec rake db:drop db:create db:migrate
 	docker compose run --rm upload_service bundle exec rake db:drop db:create db:migrate
-	make start
